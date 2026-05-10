@@ -1,0 +1,4 @@
+index=wineventlog EventCode=1 Image!="C:\\Program Files\\SplunkUniversalForwarder\\*"
+| where like(CommandLine, "%telnet%")
+    OR like(Image, "%\\telnet.exe")
+| table _time ComputerName User Image ParentImage CommandLine
