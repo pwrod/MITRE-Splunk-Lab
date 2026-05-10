@@ -1,7 +1,0 @@
-index=wineventlog EventCode=1 Image!="C:\\Program Files\\SplunkUniversalForwarder\\*"
-| where (like(Image,"%powershell.exe") OR like(Image,"%pwsh.exe"))
-    AND (
-        match(CommandLine,"(?i)-enc(odedcommand)?")
-        OR match(CommandLine,"(?i)[A-Za-z0-9+/]{20,}={0,2}")
-    )
-| table _time ComputerName User Image ParentImage CommandLine
