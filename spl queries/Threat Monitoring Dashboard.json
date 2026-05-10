@@ -1,0 +1,192 @@
+{
+  "title": "Threat Monitoring",
+  "description": "",
+  "inputs": {},
+  "defaults": {
+    "dataSources": {
+      "ds.search": {
+        "options": {
+          "queryParameters": {}
+        }
+      },
+      "ds.spl2": {
+        "options": {
+          "queryParameters": {}
+        }
+      }
+    },
+    "visualizations": {
+      "global": {
+        "showProgressBar": true
+      }
+    }
+  },
+  "visualizations": {
+    "viz_B6s0dGWm": {
+      "dataSources": {
+        "primary": "ds_TktIm0OD"
+      },
+      "options": {
+        "drilldown": "none",
+        "showInternalFields": false
+      },
+      "title": "Process Relations",
+      "type": "splunk.table"
+    },
+    "viz_MpqW6KfS": {
+      "dataSources": {
+        "primary": "ds_d3jOB2lt"
+      },
+      "options": {
+        "legendTruncation": "ellipsisMiddle",
+        "showRoundedY2AxisLabels": false,
+        "showY2MajorGridLines": true,
+        "y2AxisAbbreviation": "off",
+        "yAxisAbbreviation": "off"
+      },
+      "showProgressBar": true,
+      "title": "MITRE Techniques",
+      "type": "splunk.bar"
+    },
+    "viz_ZzbialRD": {
+      "containerOptions": {},
+      "context": {},
+      "dataSources": {
+        "primary": "ds_nE2yugN0"
+      },
+      "options": {},
+      "showLastUpdated": false,
+      "showProgressBar": true,
+      "title": "Encoded PowerShell Command Detection",
+      "type": "splunk.table"
+    },
+    "viz_lTsbGW3K": {
+      "dataSources": {
+        "primary": "ds_oWnmifEz"
+      },
+      "options": {
+        "legendTruncation": "ellipsisMiddle",
+        "showRoundedY2AxisLabels": false,
+        "showY2MajorGridLines": true,
+        "y2AxisAbbreviation": "off",
+        "yAxisAbbreviation": "off"
+      },
+      "showProgressBar": true,
+      "title": "Top Processes",
+      "type": "splunk.column"
+    }
+  },
+  "dataSources": {
+    "ds_TktIm0OD": {
+      "name": "Process Relations search",
+      "options": {
+        "query": "index=wineventlog EventCode=1 Image!=\"C:\\\\Program Files\\\\SplunkUniversalForwarder\\\\*\"\n| stats count by ParentImage, Image\n| sort -count\n| head 10",
+        "queryParameters": {
+          "earliest": "-10m@m",
+          "latest": "@m"
+        }
+      },
+      "type": "ds.search"
+    },
+    "ds_d3jOB2lt": {
+      "name": "MITRE Techniques - Bar chart search",
+      "options": {
+        "query": "index=wineventlog EventCode=1 Image!=\"C:\\\\Program Files\\\\SplunkUniversalForwarder\\\\*\"\r\n| eval technique=case(\r\n    (like(Image,\"%powershell.exe\") OR like(Image,\"%pwsh.exe\"))\r\n        AND (\r\n            match(CommandLine,\"(?i)-enc(odedcommand)?\")\r\n            OR match(CommandLine,\"(?i)[A-Za-z0-9+/]{20,}={0,2}\")\r\n        ),\r\n        \"T1059.001\",\r\n    (\r\n        like(CommandLine, \"%lsass%\") AND (\r\n            like(CommandLine, \"%procdump%\") OR\r\n            like(CommandLine, \"%comsvcs.dll%\") OR\r\n            like(CommandLine, \"%.dmp%\") OR\r\n            like(CommandLine, \"%minidump%\")\r\n        )\r\n        OR match(CommandLine, \"(?i)mimikatz\")\r\n        OR match(CommandLine, \"(?i)sekurlsa\")\r\n    ),\r\n        \"T1003.001\",\r\n    (like(CommandLine,\"%telnet%\") OR like(Image,\"%\\\\telnet.exe\")),\r\n        \"T1071\",\r\n    (\r\n        (like(Image,\"%\\\\schtasks.exe\") AND (\r\n            like(CommandLine,\"% /create%\") OR\r\n            like(CommandLine,\"% /change%\") OR\r\n            like(CommandLine,\"% /run%\") OR\r\n            like(CommandLine,\"% /delete%\")\r\n        ))\r\n        OR match(CommandLine,\"(?i)Register-ScheduledTask\")\r\n        OR match(CommandLine,\"(?i)New-ScheduledTask\")\r\n        OR match(CommandLine,\"(?i)Set-ScheduledTask\")\r\n        OR (like(CommandLine,\"%.xml\") AND like(CommandLine,\"%schtasks%\"))\r\n    ),\r\n        \"T1053.005\"\r\n)\r\n| stats count by technique",
+        "queryParameters": {
+          "earliest": "-10m@m",
+          "latest": "@m"
+        }
+      },
+      "type": "ds.search"
+    },
+    "ds_nE2yugN0": {
+      "name": "Encoded PowerShell Command Detection search",
+      "options": {
+        "query": "index=wineventlog EventCode=1 Image!=\"C:\\\\Program Files\\\\SplunkUniversalForwarder\\\\*\"\r\n| where (like(Image,\"%powershell.exe\") OR like(Image,\"%pwsh.exe\"))\r\n    AND (\r\n        match(CommandLine,\"(?i)-enc(odedcommand)?\")\r\n        OR match(CommandLine,\"(?i)[A-Za-z0-9+/]{20,}={0,2}\")\r\n    )\r\n| table _time ComputerName User Image ParentImage CommandLine",
+        "queryParameters": {
+          "earliest": "-10m@m",
+          "latest": "@m"
+        }
+      },
+      "type": "ds.search"
+    },
+    "ds_oWnmifEz": {
+      "name": "Top Processes search",
+      "options": {
+        "query": "index=wineventlog EventCode=1 \nImage!=\"C:\\\\Program Files\\\\SplunkUniversalForwarder\\\\*\" \n| stats count by Image \n| sort -count \n| head 10",
+        "queryParameters": {
+          "earliest": "-5m@m",
+          "latest": "@m"
+        }
+      },
+      "type": "ds.search"
+    }
+  },
+  "layout": {
+    "globalInputs": [],
+    "layoutDefinitions": {
+      "layout_1": {
+        "options": {
+          "height": 1000,
+          "width": 1440
+        },
+        "structure": [
+          {
+            "item": "viz_ZzbialRD",
+            "position": {
+              "h": 250,
+              "w": 1440,
+              "x": 0,
+              "y": 0
+            },
+            "type": "block"
+          },
+          {
+            "item": "viz_lTsbGW3K",
+            "position": {
+              "h": 250,
+              "w": 1440,
+              "x": 0,
+              "y": 250
+            },
+            "type": "block"
+          },
+          {
+            "item": "viz_MpqW6KfS",
+            "position": {
+              "h": 250,
+              "w": 1440,
+              "x": 0,
+              "y": 500
+            },
+            "type": "block"
+          },
+          {
+            "item": "viz_B6s0dGWm",
+            "position": {
+              "h": 250,
+              "w": 1440,
+              "x": 0,
+              "y": 750
+            },
+            "type": "block"
+          }
+        ],
+        "type": "grid"
+      }
+    },
+    "options": {},
+    "tabs": {
+      "items": [
+        {
+          "label": "New tab",
+          "layoutId": "layout_1"
+        }
+      ]
+    }
+  },
+  "applicationProperties": {
+    "hideEdit": false,
+    "hideExport": false
+  }
+}
